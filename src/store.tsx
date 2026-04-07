@@ -85,10 +85,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Sync state to LocalStorage and Firestore
   useEffect(() => {
     if (!isHydrated) return;
+    
+    // Convert state to a JSON-safe object to remove undefineds for Firebase
+    const sanitizedState = JSON.parse(JSON.stringify(state));
+    
     localStorage.setItem('finances-app-v5-state', JSON.stringify(state));
     
     if (user) {
-      setDoc(doc(db, 'users', user.uid), state, { merge: true });
+      setDoc(doc(db, 'users', user.uid), sanitizedState, { merge: true });
     }
   }, [state, user, isHydrated]);
 
