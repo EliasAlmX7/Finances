@@ -85,14 +85,14 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isOpen
           >
             <div className="md:hidden absolute top-4 left-1/2 -translate-x-1/2 w-12 h-1 bg-muted-foreground/20 rounded-full" />
             
-            <div className="flex justify-between items-center mb-6 mt-4 md:mt-0">
-              <h2 className="text-xl font-semibold text-foreground tracking-tight">
-                {isExpense ? 'Nova Despesa' : 'Nova Receita'}
-              </h2>
-              <button onClick={onClose} className="p-2 rounded-full bg-muted/50 hover:bg-muted transition-colors text-muted-foreground">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+              <div className="flex justify-between items-center mb-6 mt-4 md:mt-0 px-1">
+                <h2 className="text-2xl font-bold text-foreground tracking-tight">
+                  {isExpense ? 'Nova Despesa' : 'Nova Receita'}
+                </h2>
+                <button onClick={onClose} className="p-3 rounded-full bg-muted hover:bg-muted-foreground/10 transition-all active:scale-90 text-foreground">
+                  <X className="w-6 h-6" strokeWidth={2.5} />
+                </button>
+              </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-6 overflow-y-auto max-h-[80vh] no-scrollbar">
               

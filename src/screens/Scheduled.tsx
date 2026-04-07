@@ -165,8 +165,15 @@ export const Scheduled: React.FC = () => {
         {isAdding && (
           <React.Fragment>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm" onClick={closeModal} />
-            <motion.div initial={{ opacity: 0, y: '100%' }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: '100%' }} className="fixed inset-x-0 bottom-0 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-[70] p-6 bg-card rounded-t-[32px] md:rounded-[32px] premium-shadow md:w-full md:max-w-md border border-border max-h-[90vh] overflow-y-auto no-scrollbar">
-              <h2 className="text-xl font-semibold text-foreground mb-6">{editingId ? 'Editar Lançamento' : 'Novo Lançamento Fixo'}</h2>
+            <motion.div initial={{ opacity: 0, y: '100%' }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: '100%' }} className="fixed inset-x-0 bottom-0 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-[70] p-6 bg-card rounded-t-[40px] md:rounded-[32px] premium-shadow md:w-full md:max-w-md border border-border max-h-[90vh] overflow-y-auto no-scrollbar">
+              <div className="md:hidden absolute top-4 left-1/2 -translate-x-1/2 w-12 h-1 bg-muted-foreground/20 rounded-full" />
+              
+              <div className="flex justify-between items-center mb-6 mt-4 md:mt-0">
+                <h2 className="text-xl font-semibold text-foreground tracking-tight">{editingId ? 'Editar Lançamento' : 'Novo Lançamento Fixo'}</h2>
+                <button onClick={closeModal} className="p-2 rounded-full bg-muted/80 hover:bg-muted transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
               
               <form onSubmit={handleSave} className="flex flex-col gap-5">
                 <div className="flex gap-2 p-1.5 bg-muted/40 rounded-[20px]">

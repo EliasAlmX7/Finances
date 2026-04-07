@@ -58,28 +58,40 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Auth Effect - Use Anonymous Auth to avoid Login Screen friction
   useEffect(() => {
+    // Safety Timeout: If Firebase takes too long, let the user in anyway with local data
+    const timeout = setTimeout(() => {
+        if (loading) {
+            console.warn("Firebase Auth taking too long. Proceeding with local state.");
+            setLoading(false);
+            setIsHydrated(true);
+        }
+    }, 6000);
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (!currentUser) {
-        // Auto sign-in anonymously
-        try {
-          await signInAnonymously(auth);
-        } catch (e) {
-          console.error("Firebase Anonymous Auth failed. Check if enabled in Console.");
+      try {
+        if (!currentUser) {
+            await signInAnonymously(auth);
+        } else {
+            setUser(currentUser);
+            const docRef = doc(db, 'users', currentUser.uid);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+            const data = docSnap.data() as UserState;
+            setState(prev => ({ ...prev, ...data }));
+            }
         }
-      } else {
-        setUser(currentUser);
-        // Load data from Firestore
-        const docRef = doc(db, 'users', currentUser.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data() as UserState;
-          setState(prev => ({ ...prev, ...data }));
-        }
+      } catch (err) {
+        console.error("Auth/Sync Error:", err);
+      } finally {
+        clearTimeout(timeout);
+        setLoading(false);
+        setIsHydrated(true);
       }
-      setLoading(false);
-      setIsHydrated(true);
     });
-    return () => unsubscribe();
+    return () => {
+        unsubscribe();
+        clearTimeout(timeout);
+    };
   }, []);
 
   // Sync state to LocalStorage and Firestore
