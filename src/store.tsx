@@ -1,8 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Transaction, UserState, Theme, WalletType, ScheduledTx } from './types';
+import { auth, db } from './lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import type { User } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const initialState: UserState = {
-  hasSeenWelcome: true, // Tirar tela de boas vindas
+  hasSeenWelcome: true, 
   theme: 'light',
   wallets: [
     { id: '1', name: 'Minha Carteira', initialBalance: 0 }
@@ -13,6 +17,8 @@ const initialState: UserState = {
 };
 
 interface StoreContextType extends Omit<UserState, 'selectedDate'> {
+  user: User | null;
+  loading: boolean;
   addTransaction: (t: Omit<Transaction, 'id' | 'date'> & { date?: string }) => void;
   deleteTransaction: (id: string) => void;
   addWallet: (w: Omit<WalletType, 'id'>) => void;
@@ -31,6 +37,10 @@ interface StoreContextType extends Omit<UserState, 'selectedDate'> {
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isHydrated, setIsHydrated] = useState(false);
+
   const [state, setState] = useState<UserState>(() => {
     const saved = localStorage.getItem('finances-app-v5-state');
     if (saved) {
@@ -46,11 +56,36 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return initialState;
   });
 
+  // Auth Effect
   useEffect(() => {
-    localStorage.setItem('finances-app-v5-state', JSON.stringify(state));
-  }, [state]);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        // Load data from Firestore
+        const docRef = doc(db, 'users', currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data() as UserState;
+          setState(prev => ({ ...prev, ...data }));
+        }
+      }
+      setLoading(false);
+      setIsHydrated(true);
+    });
+    return () => unsubscribe();
+  }, []);
 
-  // Automatic Background Processing for Scheduled Fixos (Auto-Debit)
+  // Sync state to LocalStorage and Firestore
+  useEffect(() => {
+    if (!isHydrated) return;
+    localStorage.setItem('finances-app-v5-state', JSON.stringify(state));
+    
+    if (user) {
+      setDoc(doc(db, 'users', user.uid), state, { merge: true });
+    }
+  }, [state, user, isHydrated]);
+
+  // Scheduled Processing
   useEffect(() => {
     const today = new Date();
     const day = today.getDate();
@@ -61,7 +96,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const additionalTransactions: Transaction[] = [];
 
     state.scheduled.forEach(s => {
-      // Logic: Only process if today IS EXACTLY OR GREATER than the due day
       if (s.autoDebit && s.dayOfMonth <= day) {
         const alreadyDone = state.transactions.find(t => 
           t.description === `[AUTO] ${s.description}` && 
@@ -91,7 +125,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         transactions: [...additionalTransactions, ...prev.transactions] 
       }));
     }
-  }, [state.scheduled]); // Running whenever scheduled items change to detect new ones correctly
+  }, [state.scheduled]);
 
   const addTransaction = (t: Omit<Transaction, 'id' | 'date'> & { date?: string }) => {
     const newTx: Transaction = {
@@ -141,10 +175,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const resetData = () => {
-    setState({
-      ...initialState,
-      hasSeenWelcome: state.hasSeenWelcome // preserve welcome status or reset it too? Let's preserve theme/welcome
-    });
+    setState({ ...initialState, hasSeenWelcome: state.hasSeenWelcome });
   };
 
   const setHasSeenWelcome = (val: boolean) => {
@@ -158,6 +189,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <StoreContext.Provider value={{ 
       ...state, 
+      user,
+      loading,
       addTransaction, 
       deleteTransaction, 
       addWallet,
@@ -179,8 +212,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 export const useAppStore = () => {
   const context = useContext(StoreContext);
-  if (context === undefined) {
-    throw new Error('useAppStore must be used within a StoreProvider');
-  }
+  if (context === undefined) throw new Error('useAppStore must be used within a StoreProvider');
   return context;
 };

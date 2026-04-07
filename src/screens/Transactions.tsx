@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowUpRight, ArrowDownRight, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAppStore } from '../store';
 import { Card } from '../components/ui/card';
 import { AddTransactionModal } from '../components/AddTransactionModal';
