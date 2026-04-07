@@ -1,19 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Settings as SettingsIcon, Trash2, AlertTriangle, Moon, Sun, BellRing, LogOut, CheckCircle2 } from 'lucide-react';
+import { Settings as SettingsIcon, Trash2, AlertTriangle, Moon, Sun, BellRing, CheckCircle2 } from 'lucide-react';
 import { useAppStore } from '../store';
 import { Card } from '../components/ui/card';
-import { auth } from '../lib/firebase';
-import { signOut } from 'firebase/auth';
 
 export const Settings: React.FC = () => {
   const { resetData, theme, setTheme, notificationsEnabled, setNotificationsEnabled } = useAppStore();
-
-  const handleLogout = async () => {
-    if (confirm('Deseja realmente sair da sua conta?')) {
-      await signOut(auth);
-    }
-  };
 
   const handleReset = () => {
     if (confirm('ATENÇÃO: Você tem certeza que deseja APAGAR TODOS os dados? Esta ação não pode ser desfeita.')) {
@@ -124,15 +116,7 @@ export const Settings: React.FC = () => {
           </div>
 
           <div className="flex flex-col gap-3 pt-2">
-            <button 
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-3 p-5 bg-muted/50 text-foreground rounded-[24px] font-bold hover:bg-muted transition-all border border-border"
-            >
-                <LogOut className="w-5 h-5" />
-                Sair da Minha Conta
-            </button>
-
-            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mt-4 mb-1">Zona de Perigo</h3>
+            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-1">Zona de Perigo</h3>
             <div className="p-4 rounded-[20px] bg-destructive/5 border border-destructive/10 flex flex-col gap-4">
               <div className="flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
