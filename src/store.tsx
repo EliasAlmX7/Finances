@@ -18,6 +18,7 @@ interface StoreContextType extends UserState {
   editWallet: (id: string, name: string) => void;
   deleteWallet: (id: string) => void;
   addScheduled: (s: Omit<ScheduledTx, 'id'>) => void;
+  editScheduled: (s: ScheduledTx) => void;
   deleteScheduled: (id: string) => void;
   resetData: () => void;
   setHasSeenWelcome: (val: boolean) => void;
@@ -46,7 +47,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem('finances-app-v5-state', JSON.stringify(state));
   }, [state]);
 
-  // Automatic Background Processing for Scheduled Fixos (Auto-Debit) - ONLY RUN ON APP START
+  // Automatic Background Processing for Scheduled Fixos (Auto-Debit)
   useEffect(() => {
     const today = new Date();
     const day = today.getDate();
@@ -57,6 +58,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const additionalTransactions: Transaction[] = [];
 
     state.scheduled.forEach(s => {
+      // Logic: Only process if today IS EXACTLY OR GREATER than the due day
       if (s.autoDebit && s.dayOfMonth <= day) {
         const alreadyDone = state.transactions.find(t => 
           t.description === `[AUTO] ${s.description}` && 
@@ -67,7 +69,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (!alreadyDone) {
           if (s.recurrenceMonths === undefined || (s.monthsProcessed || 0) < s.recurrenceMonths) {
             additionalTransactions.push({
-              id: crypto.randomUUID(),
+              id: Math.random().toString(36).substring(2, 9),
               description: `[AUTO] ${s.description}`,
               amount: s.amount,
               type: s.type,
@@ -86,7 +88,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         transactions: [...additionalTransactions, ...prev.transactions] 
       }));
     }
-  }, []); // Only run once on mount to process what's due today/this month
+  }, [state.scheduled]); // Running whenever scheduled items change to detect new ones correctly
 
   const addTransaction = (t: Omit<Transaction, 'id' | 'date'> & { date?: string }) => {
     const newTx: Transaction = {
@@ -120,6 +122,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setState(prev => ({ ...prev, scheduled: [...prev.scheduled, { ...s, id: Math.random().toString(36).substring(2, 9) }] }));
   };
 
+  const editScheduled = (s: ScheduledTx) => {
+    setState(prev => ({
+      ...prev,
+      scheduled: prev.scheduled.map(item => item.id === s.id ? s : item)
+    }));
+  };
+
   const deleteScheduled = (id: string) => {
     setState(prev => ({ ...prev, scheduled: prev.scheduled.filter(s => s.id !== id) }));
   };
@@ -148,6 +157,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       editWallet,
       deleteWallet,
       addScheduled,
+      editScheduled,
       deleteScheduled,
       resetData,
       setHasSeenWelcome, 
