@@ -119,8 +119,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isOpen
                     placeholder="0,00"
                     value={amountStr}
                     onChange={(e) => setAmountStr(e.target.value)}
-                    className="pl-12 text-2xl font-medium h-16 w-full bg-card rounded-[20px] border border-border focus:ring-2 focus:ring-primary/20"
-                    autoFocus
+                    className="pl-12 text-base font-medium h-16 w-full bg-card rounded-[20px] border border-border focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
               </div>

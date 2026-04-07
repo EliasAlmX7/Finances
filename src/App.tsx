@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { WelcomeScreen } from './components/WelcomeScreen';
+
 import { StoreProvider, useAppStore } from './store';
 import { Navigation } from './components/Navigation';
 
@@ -40,7 +40,7 @@ const AppContent = () => {
   return (
     <div className="relative min-h-screen bg-background text-foreground font-sans transition-colors duration-300 pb-28 md:pb-8">
       <div className="relative z-10 w-full h-full min-h-screen max-w-5xl mx-auto flex flex-col md:flex-row">
-        <WelcomeScreen />
+
         
         {/* Desktop Sidebar / Mobile Bottom Nav */}
         <Navigation activeTab={activeTab} onChange={setActiveTab} />

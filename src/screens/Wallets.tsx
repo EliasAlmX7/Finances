@@ -214,7 +214,6 @@ export const Wallets: React.FC = () => {
                     value={walletName}
                     onChange={(e) => setWalletName(e.target.value)}
                     className="h-14 text-sm font-medium bg-muted/40 border-border rounded-[20px]"
-                    autoFocus
                   />
                 </div>
                 

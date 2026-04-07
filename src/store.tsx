@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Transaction, UserState, Theme, WalletType, ScheduledTx } from './types';
 
 const initialState: UserState = {
-  hasSeenWelcome: false,
+  hasSeenWelcome: true, // Tirar tela de boas vindas
   theme: 'light',
   wallets: [
     { id: '1', name: 'Minha Carteira', initialBalance: 0 }
