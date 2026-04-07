@@ -105,7 +105,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     state.scheduled.forEach(s => {
       if (s.autoDebit && s.dayOfMonth <= day) {
         const alreadyDone = state.transactions.find(t => 
-          t.description === `[AUTO] ${s.description}` && 
+          (t.description === `[AUTO] ${s.description}` || t.description === `[FIXO] ${s.description}`) && 
           new Date(t.date).getMonth() === month &&
           new Date(t.date).getFullYear() === year
         );
@@ -114,7 +114,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           if (s.recurrenceMonths === undefined || (s.monthsProcessed || 0) < s.recurrenceMonths) {
             additionalTransactions.push({
               id: Math.random().toString(36).substring(2, 9),
-              description: `[AUTO] ${s.description}`,
+              description: `[FIXO] ${s.description}`,
               amount: s.amount,
               type: s.type,
               walletId: s.walletId,
