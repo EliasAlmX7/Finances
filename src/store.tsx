@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Transaction, UserState, Theme, WalletType, ScheduledTx } from './types';
 import { auth, db } from './lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import type { User } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
@@ -56,11 +56,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return initialState;
   });
 
-  // Auth Effect
+  // Auth Effect - Use Anonymous Auth to avoid Login Screen friction
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
+      if (!currentUser) {
+        // Auto sign-in anonymously
+        try {
+          await signInAnonymously(auth);
+        } catch (e) {
+          console.error("Firebase Anonymous Auth failed. Check if enabled in Console.");
+        }
+      } else {
+        setUser(currentUser);
         // Load data from Firestore
         const docRef = doc(db, 'users', currentUser.uid);
         const docSnap = await getDoc(docRef);
