@@ -1,10 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Edit2, X, ChevronDown } from 'lucide-react';
+import { Plus, Trash2, Edit2, X, ChevronDown, Tag } from 'lucide-react';
 import { useAppStore } from '../store';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import type { Category } from '../types';
+
+const CATEGORIES: Category[] = ['Alimentação', 'Transporte', 'Moradia', 'Lazer', 'Assinaturas', 'Salário', 'Outros'];
 
 export const Scheduled: React.FC = () => {
   const { scheduled, wallets, addScheduled, editScheduled, deleteScheduled } = useAppStore();
@@ -18,6 +21,7 @@ export const Scheduled: React.FC = () => {
   const [amountStr, setAmountStr] = useState('');
   const [dayOfMonth, setDayOfMonth] = useState('1');
   const [type, setType] = useState<'income' | 'expense'>('expense');
+  const [category, setCategory] = useState<Category>('Outros');
   const [autoDebit, setAutoDebit] = useState(false);
   const [walletId, setWalletId] = useState('');
   const [recurrenceMonths, setRecurrenceMonths] = useState<string>('');
@@ -43,6 +47,7 @@ export const Scheduled: React.FC = () => {
       amount,
       dayOfMonth: day,
       type,
+      category,
       autoDebit,
       walletId: autoDebit ? walletId : undefined,
       recurrenceMonths: recurrenceMonths ? parseInt(recurrenceMonths) : undefined,
@@ -63,6 +68,7 @@ export const Scheduled: React.FC = () => {
     setAmountStr('');
     setDayOfMonth('1');
     setType('expense');
+    setCategory('Outros');
     setAutoDebit(false);
     setRecurrenceMonths('');
     if (wallets.length > 0) setWalletId(wallets[0].id);
@@ -75,6 +81,7 @@ export const Scheduled: React.FC = () => {
     setAmountStr(s.amount.toString());
     setDayOfMonth(s.dayOfMonth.toString());
     setType(s.type);
+    setCategory(s.category || 'Outros');
     setAutoDebit(s.autoDebit || false);
     setWalletId(s.walletId || (wallets.length > 0 ? wallets[0].id : ''));
     setRecurrenceMonths(s.recurrenceMonths?.toString() || '');
@@ -117,7 +124,10 @@ export const Scheduled: React.FC = () => {
               <Card className="p-5 flex items-center justify-between bg-card border border-border rounded-[24px] premium-shadow cursor-pointer overflow-hidden transition-all active:scale-[0.98] select-none">
                 <div className="flex flex-col gap-0.5">
                   <span className="text-sm font-semibold text-foreground tracking-wide">{s.description}</span>
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Dia {s.dayOfMonth}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Dia {s.dayOfMonth}</span>
+                    <span className="text-[9px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground font-bold">{s.category || 'Outros'}</span>
+                  </div>
                 </div>
                 <div className="flex flex-col items-end">
                   <span className={"text-base font-semibold " + (s.type === 'expense' ? 'text-foreground' : 'text-success')}>
@@ -155,7 +165,7 @@ export const Scheduled: React.FC = () => {
         {isAdding && (
           <React.Fragment>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm" onClick={closeModal} />
-            <motion.div initial={{ opacity: 0, y: '100%' }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: '100%' }} className="fixed inset-x-0 bottom-0 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-[70] p-6 bg-card rounded-t-[32px] md:rounded-[32px] premium-shadow md:w-full md:max-w-md border border-border">
+            <motion.div initial={{ opacity: 0, y: '100%' }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: '100%' }} className="fixed inset-x-0 bottom-0 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-[70] p-6 bg-card rounded-t-[32px] md:rounded-[32px] premium-shadow md:w-full md:max-w-md border border-border max-h-[90vh] overflow-y-auto no-scrollbar">
               <h2 className="text-xl font-semibold text-foreground mb-6">{editingId ? 'Editar Lançamento' : 'Novo Lançamento Fixo'}</h2>
               
               <form onSubmit={handleSave} className="flex flex-col gap-5">
@@ -172,6 +182,21 @@ export const Scheduled: React.FC = () => {
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-semibold text-muted-foreground uppercase ml-1">Dia do Mês</label>
                     <Input type="number" min="1" max="31" value={dayOfMonth} onChange={(e) => setDayOfMonth(e.target.value)} className="h-14 font-medium" placeholder="Ex: 5" />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase ml-1">Categoria</label>
+                  <div className="relative">
+                    <select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value as Category)}
+                      className="w-full h-14 appearance-none rounded-[16px] bg-muted/30 px-10 border border-border text-sm font-medium outline-none"
+                    >
+                      {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                    </select>
+                    <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-50" />
                   </div>
                 </div>
 

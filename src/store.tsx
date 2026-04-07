@@ -9,9 +9,10 @@ const initialState: UserState = {
   ],
   transactions: [],
   scheduled: [],
+  selectedDate: new Date().toISOString(),
 };
 
-interface StoreContextType extends UserState {
+interface StoreContextType extends Omit<UserState, 'selectedDate'> {
   addTransaction: (t: Omit<Transaction, 'id' | 'date'> & { date?: string }) => void;
   deleteTransaction: (id: string) => void;
   addWallet: (w: Omit<WalletType, 'id'>) => void;
@@ -23,6 +24,8 @@ interface StoreContextType extends UserState {
   resetData: () => void;
   setHasSeenWelcome: (val: boolean) => void;
   setTheme: (theme: Theme) => void;
+  selectedDate: Date;
+  setSelectedDate: (d: Date) => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -129,6 +132,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }));
   };
 
+  const setSelectedDate = (d: Date) => {
+    setState(prev => ({ ...prev, selectedDate: d.toISOString() }));
+  };
+
   const deleteScheduled = (id: string) => {
     setState(prev => ({ ...prev, scheduled: prev.scheduled.filter(s => s.id !== id) }));
   };
@@ -159,6 +166,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       addScheduled,
       editScheduled,
       deleteScheduled,
+      selectedDate: new Date(state.selectedDate),
+      setSelectedDate,
       resetData,
       setHasSeenWelcome, 
       setTheme 

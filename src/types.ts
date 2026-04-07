@@ -37,4 +37,5 @@ export interface UserState {
   wallets: WalletType[];
   transactions: Transaction[];
   scheduled: ScheduledTx[];
+  selectedDate: string; // ISO String for persistence
 }

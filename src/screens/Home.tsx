@@ -6,25 +6,19 @@ import { Card } from '../components/ui/card';
 import { AddTransactionModal } from '../components/AddTransactionModal';
 
 export const Home: React.FC = () => {
-  const { transactions, scheduled } = useAppStore();
+  const { transactions, scheduled, wallets, selectedDate, setSelectedDate } = useAppStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'income' | 'expense'>('expense');
 
-  // Mês Selection Navigation
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  
   const monthName = selectedDate.toLocaleDateString('pt-BR', { month: 'long' });
   const yearName = selectedDate.getFullYear();
 
   const changeMonth = (offset: number) => {
-    setSelectedDate(prev => {
-      const newD = new Date(prev);
-      newD.setMonth(prev.getMonth() + offset);
-      return newD;
-    });
+    const newD = new Date(selectedDate);
+    newD.setMonth(selectedDate.getMonth() + offset);
+    setSelectedDate(newD);
   };
 
-  const { wallets } = useAppStore();
 
   // Logic: SALDO REAL = (Saldo Inicial Carteiras + Todas Receitas - Todas Despesas) - Fixos Restantes
   const { balance, income, expense, expensesList, fixosList, fixosTotal } = useMemo(() => {
