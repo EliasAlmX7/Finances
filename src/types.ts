@@ -25,7 +25,10 @@ export interface ScheduledTx {
   type: TransactionType;
   category?: Category;
   dayOfMonth: number;
-  walletId?: string; // Optional for expenses
+  autoDebit: boolean;
+  recurrenceMonths?: number; // How many months total, undefined = infinite
+  monthsProcessed?: number; // Internal counter
+  walletId?: string; // Optional if autoDebit is false
 }
 
 export interface UserState {

@@ -15,6 +15,7 @@ interface StoreContextType extends UserState {
   addTransaction: (t: Omit<Transaction, 'id' | 'date'> & { date?: string }) => void;
   deleteTransaction: (id: string) => void;
   addWallet: (w: Omit<WalletType, 'id'>) => void;
+  editWallet: (id: string, name: string) => void;
   deleteWallet: (id: string) => void;
   addScheduled: (s: Omit<ScheduledTx, 'id'>) => void;
   deleteScheduled: (id: string) => void;
@@ -38,6 +39,48 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem('finances-app-v5-state', JSON.stringify(state));
   }, [state]);
 
+  // Automatic Background Processing for Scheduled Fixos (Auto-Debit) - ONLY RUN ON APP START
+  useEffect(() => {
+    const today = new Date();
+    const day = today.getDate();
+    const month = today.getMonth();
+    const year = today.getFullYear();
+
+    let discoveredNew = false;
+    const additionalTransactions: Transaction[] = [];
+
+    state.scheduled.forEach(s => {
+      if (s.autoDebit && s.dayOfMonth <= day) {
+        const alreadyDone = state.transactions.find(t => 
+          t.description === `[AUTO] ${s.description}` && 
+          new Date(t.date).getMonth() === month &&
+          new Date(t.date).getFullYear() === year
+        );
+
+        if (!alreadyDone) {
+          if (s.recurrenceMonths === undefined || (s.monthsProcessed || 0) < s.recurrenceMonths) {
+            additionalTransactions.push({
+              id: crypto.randomUUID(),
+              description: `[AUTO] ${s.description}`,
+              amount: s.amount,
+              type: s.type,
+              walletId: s.walletId,
+              date: new Date().toISOString()
+            });
+            discoveredNew = true;
+          }
+        }
+      }
+    });
+
+    if (discoveredNew) {
+      setState(prev => ({ 
+        ...prev, 
+        transactions: [...additionalTransactions, ...prev.transactions] 
+      }));
+    }
+  }, []); // Only run once on mount to process what's due today/this month
+
   const addTransaction = (t: Omit<Transaction, 'id' | 'date'> & { date?: string }) => {
     const newTx: Transaction = {
       ...t,
@@ -57,6 +100,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const deleteWallet = (id: string) => {
     setState(prev => ({ ...prev, wallets: prev.wallets.filter(w => w.id !== id) }));
+  };
+
+  const editWallet = (id: string, name: string) => {
+    setState(prev => ({
+      ...prev,
+      wallets: prev.wallets.map(w => w.id === id ? { ...w, name } : w)
+    }));
   };
 
   const addScheduled = (s: Omit<ScheduledTx, 'id'>) => {
@@ -88,6 +138,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       addTransaction, 
       deleteTransaction, 
       addWallet,
+      editWallet,
       deleteWallet,
       addScheduled,
       deleteScheduled,

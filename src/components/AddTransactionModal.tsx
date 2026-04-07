@@ -102,7 +102,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isOpen
                 </button>
                 <button
                   type="button"
-                  className={"flex-1 py-3 rounded-[16px] text-sm font-semibold transition-all " + (!isExpense ? 'bg-success text-white shadow-md' : 'text-muted-foreground hover:bg-muted/50')}
+                  className={"flex-1 py-3 rounded-[16px] text-sm font-semibold transition-all " + (!isExpense ? 'bg-[#34c759] text-white shadow-md' : 'text-muted-foreground hover:bg-muted/50')}
                   onClick={() => setType('income')}
                 >
                   Receita

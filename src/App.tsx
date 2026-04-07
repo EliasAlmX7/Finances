@@ -9,8 +9,9 @@ import { Wallets } from './screens/Wallets';
 import { Transactions } from './screens/Transactions';
 import { Scheduled } from './screens/Scheduled';
 import { Settings } from './screens/Settings';
+import { Reports } from './screens/Reports';
 
-export type Tab = 'home' | 'wallets' | 'transactions' | 'scheduled' | 'settings';
+export type Tab = 'home' | 'wallets' | 'transactions' | 'scheduled' | 'settings' | 'reports';
 
 const AppContent = () => {
   const { theme } = useAppStore();
@@ -30,6 +31,7 @@ const AppContent = () => {
       case 'wallets': return <Wallets />;
       case 'transactions': return <Transactions />;
       case 'scheduled': return <Scheduled />;
+      case 'reports': return <Reports />;
       case 'settings': return <Settings />;
       default: return <Home />;
     }

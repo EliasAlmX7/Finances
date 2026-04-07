@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Home, Wallet, ListOrdered, CalendarClock, Settings as SettingsIcon } from 'lucide-react';
+import { Home, Wallet, ListOrdered, CalendarClock, PieChart, Settings as SettingsIcon } from 'lucide-react';
 import type { Tab } from '../App';
 
 interface NavigationProps {
@@ -12,8 +12,9 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onChange }) =
   const tabs: { id: Tab; icon: React.ReactNode; label: string }[] = [
     { id: 'home', icon: <Home className="w-6 h-6 md:w-5 md:h-5" strokeWidth={1.5} />, label: 'Resumo' },
     { id: 'wallets', icon: <Wallet className="w-6 h-6 md:w-5 md:h-5" strokeWidth={1.5} />, label: 'Carteiras' },
-    { id: 'transactions', icon: <ListOrdered className="w-6 h-6 md:w-5 md:h-5" strokeWidth={1.5} />, label: 'Transações' },
+    { id: 'transactions', icon: <ListOrdered className="w-6 h-6 md:w-5 md:h-5" strokeWidth={1.5} />, label: 'Extrato' },
     { id: 'scheduled', icon: <CalendarClock className="w-6 h-6 md:w-5 md:h-5" strokeWidth={1.5} />, label: 'Fixos' },
+    { id: 'reports', icon: <PieChart className="w-6 h-6 md:w-5 md:h-5" strokeWidth={1.5} />, label: 'Relatórios' },
     { id: 'settings', icon: <SettingsIcon className="w-6 h-6 md:w-5 md:h-5" strokeWidth={1.5} />, label: 'Ajustes' },
   ];
 

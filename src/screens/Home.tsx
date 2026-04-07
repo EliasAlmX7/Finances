@@ -87,17 +87,16 @@ export const Home: React.FC = () => {
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex justify-between items-center"
+        className="flex flex-col items-center gap-6"
       >
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground md:hidden border-none m-0">Minhas Finanças</h1>
-        <div className="hidden md:block" />
+        <h1 className="text-3xl font-semibold tracking-tight text-foreground border-none m-0">Olá, Dami.</h1>
 
-        <div className="flex bg-card rounded-[24px] premium-shadow p-1.5 items-center border border-border">
+        <div className="flex bg-card rounded-[24px] premium-shadow p-1.5 items-center border border-border w-fit">
           <button onClick={() => changeMonth(-1)} className="p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors">
             <ChevronLeft className="w-5 h-5" strokeWidth={1.5} />
           </button>
-          <div className="flex flex-col items-center px-4 w-28">
-            <span className="text-[13px] font-medium text-foreground capitalize tracking-wide">{monthName}</span>
+          <div className="flex flex-col items-center px-4 w-32">
+            <span className="text-[14px] font-medium text-foreground capitalize tracking-wide">{monthName}</span>
             <span className="text-[10px] text-muted-foreground">{yearName}</span>
           </div>
           <button onClick={() => changeMonth(1)} className="p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors">
@@ -141,7 +140,7 @@ export const Home: React.FC = () => {
             </button>
             <button 
               onClick={() => openAddModal('income')}
-              className="flex-1 flex items-center justify-center gap-2 bg-card border border-border hover:bg-muted text-foreground px-2 rounded-[20px] font-medium premium-shadow transition-all active:scale-95 h-14 text-sm"
+              className="flex-1 flex items-center justify-center gap-2 bg-[#34c759] hover:bg-[#2ead4e] text-white px-2 rounded-[20px] font-medium shadow-md shadow-[#34c759]/10 transition-all active:scale-95 h-14 text-sm"
             >
               <ArrowUpRight className="w-4 h-4" strokeWidth={2} />
               Nova Receita
