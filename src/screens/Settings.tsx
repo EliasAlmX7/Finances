@@ -1,13 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Settings as SettingsIcon, Trash2, AlertTriangle, Moon, Sun, BellRing, LogOut } from 'lucide-react';
+import { Settings as SettingsIcon, Trash2, AlertTriangle, Moon, Sun, BellRing, LogOut, CheckCircle2 } from 'lucide-react';
 import { useAppStore } from '../store';
 import { Card } from '../components/ui/card';
 import { auth } from '../lib/firebase';
 import { signOut } from 'firebase/auth';
 
 export const Settings: React.FC = () => {
-  const { resetData, theme, setTheme } = useAppStore();
+  const { resetData, theme, setTheme, notificationsEnabled, setNotificationsEnabled } = useAppStore();
 
   const handleLogout = async () => {
     if (confirm('Deseja realmente sair da sua conta?')) {
@@ -26,6 +26,28 @@ export const Settings: React.FC = () => {
 
   const toggleTheme = () => {
     setTheme(theme === 'light' ? 'dark' : 'light');
+  };
+
+  const toggleNotifications = async () => {
+    if (!notificationsEnabled) {
+      if (!("Notification" in window)) {
+        alert("Este navegador não suporta notificações de desktop");
+        return;
+      }
+
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        setNotificationsEnabled(true);
+        new Notification("🚀 Notificações Ativadas!", {
+          body: "Você será avisado sobre suas contas fixas e movimentações importantes.",
+          icon: "/pwa-192x192.png"
+        });
+      } else {
+        alert("Você precisa permitir as notificações nas configurações do seu navegador.");
+      }
+    } else {
+      setNotificationsEnabled(false);
+    }
   };
 
   return (
@@ -61,22 +83,31 @@ export const Settings: React.FC = () => {
           </div>
         </Card>
 
-        {/* Notifications (Mockup for now) */}
+        {/* Real Push Notifications Toggle */}
         <Card className="p-6 bg-card border border-border rounded-[32px] premium-shadow flex flex-col gap-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-[20px] bg-primary/5 flex items-center justify-center text-primary">
+              <div className={"w-12 h-12 rounded-[20px] flex items-center justify-center transition-colors " + (notificationsEnabled ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground')}>
                 <BellRing className="w-6 h-6" strokeWidth={1.5} />
               </div>
               <div className="flex flex-col">
-                <span className="font-semibold text-foreground">Notificações Push</span>
-                <span className="text-sm text-muted-foreground">Alertas de contas vencendo</span>
+                <div className="flex items-center gap-2">
+                    <span className="font-semibold text-foreground">Notificações Push</span>
+                    {notificationsEnabled && <CheckCircle2 className="w-3 h-3 text-success" />}
+                </div>
+                <span className="text-sm text-muted-foreground">Alertas de contas vencendo hoje</span>
               </div>
             </div>
             
-            <div className="w-14 h-7 bg-success rounded-full flex items-center px-1">
-              <div className="w-5 h-5 bg-white rounded-full shadow-sm ml-auto" />
-            </div>
+            <button 
+                onClick={toggleNotifications}
+                className={"w-14 h-7 rounded-full flex items-center px-1 transition-all duration-500 " + (notificationsEnabled ? 'bg-success' : 'bg-muted border border-border')}
+            >
+              <motion.div 
+                animate={{ x: notificationsEnabled ? 28 : 0 }}
+                className="w-5 h-5 bg-white rounded-full shadow-md" 
+              />
+            </button>
           </div>
         </Card>
 

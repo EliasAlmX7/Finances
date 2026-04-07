@@ -14,6 +14,7 @@ const initialState: UserState = {
   transactions: [],
   scheduled: [],
   selectedDate: new Date().toISOString(),
+  notificationsEnabled: false,
 };
 
 interface StoreContextType extends Omit<UserState, 'selectedDate'> {
@@ -30,6 +31,7 @@ interface StoreContextType extends Omit<UserState, 'selectedDate'> {
   resetData: () => void;
   setHasSeenWelcome: (val: boolean) => void;
   setTheme: (theme: Theme) => void;
+  setNotificationsEnabled: (val: boolean) => void;
   selectedDate: Date;
   setSelectedDate: (d: Date) => void;
 }
@@ -147,6 +149,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         ...prev, 
         transactions: [...additionalTransactions, ...prev.transactions] 
       }));
+
+      if (state.notificationsEnabled && ("Notification" in window) && Notification.permission === "granted") {
+        const total = additionalTransactions.reduce((acc, t) => acc + t.amount, 0);
+        new Notification("💳 Contas Pagas!", {
+          body: `${additionalTransactions.length} lançamentos fixos foram processados. Total: R$ ${total.toFixed(2)}`,
+          icon: "/pwa-192x192.png"
+        });
+      }
     }
   }, [state.scheduled]);
 
@@ -209,6 +219,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setState(prev => ({ ...prev, theme }));
   };
 
+  const setNotificationsEnabled = (val: boolean) => {
+    setState(prev => ({ ...prev, notificationsEnabled: val }));
+  };
+
   return (
     <StoreContext.Provider value={{ 
       ...state, 
@@ -226,7 +240,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setSelectedDate,
       resetData,
       setHasSeenWelcome, 
-      setTheme 
+      setTheme,
+      setNotificationsEnabled
     }}>
       {children}
     </StoreContext.Provider>

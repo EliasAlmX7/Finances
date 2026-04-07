@@ -38,4 +38,5 @@ export interface UserState {
   transactions: Transaction[];
   scheduled: ScheduledTx[];
   selectedDate: string; // ISO String for persistence
+  notificationsEnabled: boolean;
 }
