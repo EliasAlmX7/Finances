@@ -29,7 +29,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onChange }) =
               <button
                 key={tab.id}
                 onClick={() => onChange(tab.id)}
-                className="relative flex flex-col items-center gap-1.5 flex-1"
+                className="relative flex flex-col items-center gap-1.5 flex-1 select-none cursor-pointer active:scale-95 transition-transform"
               >
                 <div className={"transition-colors duration-300 " + (isActive ? 'text-foreground' : 'text-muted-foreground')}>
                   {tab.icon}

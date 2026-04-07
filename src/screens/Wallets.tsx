@@ -114,7 +114,7 @@ export const Wallets: React.FC = () => {
               transition={{ delay: i * 0.05 }}
             >
               <Card 
-                className="relative overflow-hidden bg-card premium-shadow border border-border rounded-[24px] cursor-pointer"
+                className="relative overflow-hidden bg-card premium-shadow border border-border rounded-[24px] cursor-pointer select-none"
                 onPointerDown={() => startPress(acc.id)}
                 onPointerUp={cancelPress}
                 onPointerLeave={cancelPress}

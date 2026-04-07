@@ -114,7 +114,7 @@ export const Scheduled: React.FC = () => {
               onPointerLeave={cancelPress}
               className="relative"
             >
-              <Card className="p-5 flex items-center justify-between bg-card border border-border rounded-[24px] premium-shadow cursor-pointer overflow-hidden transition-all active:scale-[0.98]">
+              <Card className="p-5 flex items-center justify-between bg-card border border-border rounded-[24px] premium-shadow cursor-pointer overflow-hidden transition-all active:scale-[0.98] select-none">
                 <div className="flex flex-col gap-0.5">
                   <span className="text-sm font-semibold text-foreground tracking-wide">{s.description}</span>
                   <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Dia {s.dayOfMonth}</span>

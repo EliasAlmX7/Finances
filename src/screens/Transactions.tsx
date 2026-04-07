@@ -30,7 +30,7 @@ export const Transactions: React.FC = () => {
       <div className="flex gap-4">
         <button 
           onClick={() => openModal('income')}
-          className="flex-1 bg-[#10b981]/10 hover:bg-[#10b981]/20 transition-colors text-[#10b981] rounded-[24px] p-4 flex justify-center items-center gap-2 font-bold"
+          className="flex-1 bg-[#34c759]/10 hover:bg-[#34c759]/20 active:scale-95 transition-all text-[#34c759] rounded-[24px] p-4 flex justify-center items-center gap-2 font-bold"
         >
           <ArrowUpRight className="w-5 h-5" />
           Receitas
@@ -38,7 +38,7 @@ export const Transactions: React.FC = () => {
         
         <button 
           onClick={() => openModal('expense')}
-          className="flex-1 bg-[#da292e]/10 hover:bg-[#da292e]/20 transition-colors text-[#da292e] rounded-[24px] p-4 flex justify-center items-center gap-2 font-bold"
+          className="flex-1 bg-[#da292e]/10 hover:bg-[#da292e]/20 active:scale-95 transition-all text-[#da292e] rounded-[24px] p-4 flex justify-center items-center gap-2 font-bold"
         >
           <ArrowDownRight className="w-5 h-5" />
           Despesas
@@ -61,7 +61,7 @@ export const Transactions: React.FC = () => {
                 return (
                   <li key={tx.id} className={"flex items-center justify-between p-4 " + (idx !== sortedTransactions.length - 1 ? "border-b border-border text-foreground" : "")}>
                     <div className="flex items-center gap-4">
-                      <div className={"w-12 h-12 rounded-[16px] flex items-center justify-center " + (isIncome ? 'bg-[#10b981]/10 text-[#10b981]' : 'bg-[#da292e]/10 text-[#da292e]')}>
+                      <div className={"w-12 h-12 rounded-[16px] flex items-center justify-center " + (isIncome ? 'bg-[#34c759]/10 text-[#34c759]' : 'bg-[#da292e]/10 text-[#da292e]')}>
                         {isIncome ? <ArrowUpRight className="w-6 h-6" /> : <ArrowDownRight className="w-6 h-6" />}
                       </div>
                       <div className="flex flex-col">
@@ -75,7 +75,7 @@ export const Transactions: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    <span className={"font-bold text-lg " + (isIncome ? 'text-[#10b981]' : 'text-foreground')}>
+                    <span className={"font-bold text-lg " + (isIncome ? 'text-[#34c759]' : 'text-foreground')}>
                       {isIncome ? '+' : '-'} R$ {tx.amount.toFixed(2).replace('.', ',')}
                     </span>
                   </li>
