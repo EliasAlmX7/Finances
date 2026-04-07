@@ -62,7 +62,7 @@ export const Home: React.FC = () => {
     });
 
     return { 
-      balance: currentWalletBalance - fixosSum, 
+      balance: currentWalletBalance, // Mostra o dinheiro que realmente está nas carteiras
       income: monthInc, 
       expense: monthExp,
       expensesList: expensesOnly,
@@ -95,7 +95,7 @@ export const Home: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col items-center gap-6"
       >
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground border-none m-0">Olá, Dami.</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground bg-gradient-to-r from-foreground to-foreground/40 bg-clip-text text-transparent border-none m-0">Minhas Finanças</h1>
 
         <div className="flex bg-card rounded-[24px] premium-shadow p-1.5 items-center border border-border w-fit">
           <button onClick={() => changeMonth(-1)} className="p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors">
@@ -122,18 +122,25 @@ export const Home: React.FC = () => {
           <div className="flex flex-col relative z-10 w-full mb-8">
             <div className="flex items-center gap-2 mb-2 text-muted-foreground">
               <Wallet className="w-4 h-4 opacity-70" strokeWidth={1.5} />
-              <span className="text-xs font-semibold tracking-widest uppercase opacity-80">
-                Saldo (Mês Atual)
+              <span className="text-xs font-bold tracking-widest uppercase opacity-80">
+                Saldo Atual (Carteiras)
               </span>
             </div>
             
-            <h1 className={"text-5xl md:text-6xl font-medium tracking-tight mb-2 " + (isDebt ? 'text-[#d11a2a]' : 'text-foreground')}>
+            <h1 className={"text-5xl md:text-6xl font-bold tracking-tight mb-4 " + (isDebt ? 'text-[#d11a2a]' : 'text-foreground')}>
               R$ {balance.toFixed(2).replace('.', ',')}
             </h1>
 
-            <span className="text-xs text-muted-foreground font-medium">
-              Receitas do Mês: <span className="text-success font-medium">R$ {income.toFixed(2).replace('.', ',')}</span>
-            </span>
+            <div className="flex flex-col gap-1.5 opacity-60">
+              <span className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em]">
+                Contas do Mês: <span className="text-success font-black">R$ {income.toFixed(2).replace('.', ',')}</span>
+              </span>
+              {fixosTotal > 0 && (
+                <span className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em]">
+                  Falta pagar: <span className="text-primary font-black">R$ {fixosTotal.toFixed(2).replace('.', ',')}</span>
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="flex gap-4 relative z-10">
