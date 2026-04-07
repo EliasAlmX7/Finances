@@ -24,46 +24,58 @@ export const Home: React.FC = () => {
     });
   };
 
-  // Logic: SALDO MENSAL = RECEITAS (do mês) - DESPESAS EXTRAS (do mês) - FIXOS (recorrentes)
+  const { wallets } = useAppStore();
+
+  // Logic: SALDO REAL = (Saldo Inicial Carteiras + Todas Receitas - Todas Despesas) - Fixos Restantes
   const { balance, income, expense, expensesList, fixosList, fixosTotal } = useMemo(() => {
-    let inc = 0;
-    let exp = 0;
+    let globalInc = 0;
+    let globalExp = 0;
+    let walletSeed = wallets.reduce((acc, w) => acc + w.initialBalance, 0);
+
+    // Historical totals for actual wallet balance
+    transactions.forEach(t => {
+      if (t.type === 'income') globalInc += t.amount;
+      else globalExp += t.amount;
+    });
+
+    const currentWalletBalance = walletSeed + globalInc - globalExp;
+
+    // Monthly view stats (used for the mini stats under the balance)
+    let monthInc = 0;
+    let monthExp = 0;
     let fixosSum = 0;
     
-    // Filter variables for the selected month limit
     const currentMonthTxs = transactions.filter(t => {
       const d = new Date(t.date);
       return d.getMonth() === selectedDate.getMonth() && d.getFullYear() === selectedDate.getFullYear();
+    });
+
+    currentMonthTxs.forEach(t => {
+      if (t.type === 'income') monthInc += t.amount;
+      else monthExp += t.amount;
     });
 
     const expensesOnly = currentMonthTxs
       .filter(t => t.type === 'expense')
       .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-    currentMonthTxs.forEach(t => {
-      if (t.type === 'income') inc += t.amount;
-      else exp += t.amount;
-    });
-
-    // Process scheduled as ghost items for this month's budget
-    // Assuming scheduled items apply completely to the month
+    // Fixos: Summing remaining ones for the selected month view
     const activeScheduled = [...scheduled];
     activeScheduled.forEach(s => {
-      if (s.type === 'income') inc += s.amount;
-      else {
+      if (s.type === 'expense') {
         fixosSum += s.amount;
       }
     });
 
     return { 
-      balance: inc - (exp + fixosSum), 
-      income: inc, 
-      expense: exp,
+      balance: currentWalletBalance - fixosSum, 
+      income: monthInc, 
+      expense: monthExp,
       expensesList: expensesOnly,
       fixosList: activeScheduled.filter(s => s.type === 'expense').sort((a,b) => a.dayOfMonth - b.dayOfMonth),
       fixosTotal: fixosSum
     };
-  }, [transactions, scheduled, selectedDate]);
+  }, [transactions, scheduled, wallets, selectedDate]);
 
   const openAddModal = (type: 'income' | 'expense') => {
     setModalType(type);
@@ -117,7 +129,7 @@ export const Home: React.FC = () => {
             <div className="flex items-center gap-2 mb-2 text-muted-foreground">
               <Wallet className="w-4 h-4 opacity-70" strokeWidth={1.5} />
               <span className="text-xs font-semibold tracking-widest uppercase opacity-80">
-                Saldo Livre (Mês Atual)
+                Saldo (Mês Atual)
               </span>
             </div>
             

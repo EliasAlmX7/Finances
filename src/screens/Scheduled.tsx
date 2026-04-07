@@ -227,50 +227,52 @@ export const Scheduled: React.FC = () => {
                   />
                 </div>
 
-                {/* Auto Debit Config */}
-                <div className="flex flex-col gap-2 mt-2 bg-muted/20 p-4 rounded-[20px] border border-border">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-foreground">Débito Automático?</span>
-                    <button
-                      type="button"
-                      onClick={() => setAutoDebit(!autoDebit)}
-                      className={"w-12 h-6 rounded-full transition-colors relative flex items-center px-1 " + (autoDebit ? "bg-success" : "bg-border")}
-                    >
-                      <motion.div
-                        layout
-                        className="w-4 h-4 bg-white rounded-full shadow-sm"
-                        animate={{ x: autoDebit ? 24 : 0 }}
-                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                      />
-                    </button>
-                  </div>
-                  
-                  <AnimatePresence>
-                    {autoDebit && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="flex flex-col gap-2 overflow-hidden pt-2"
+                {/* Auto Debit Config - Only for Expense */}
+                {type === 'expense' && (
+                  <div className="flex flex-col gap-2 mt-2 bg-muted/20 p-4 rounded-[20px] border border-border">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium text-foreground">Débito Automático?</span>
+                      <button
+                        type="button"
+                        onClick={() => setAutoDebit(!autoDebit)}
+                        className={"w-12 h-6 rounded-full transition-colors relative flex items-center px-1 " + (autoDebit ? "bg-success" : "bg-border")}
                       >
-                        <label className="text-xs font-semibold text-muted-foreground ml-1 uppercase tracking-wide">Descontar de qual carteira?</label>
-                        <div className="relative">
-                          <select
-                            value={walletId}
-                            onChange={(e) => setWalletId(e.target.value)}
-                            className="w-full h-14 appearance-none rounded-[20px] bg-card px-4 py-2 text-sm border border-border focus:border-primary focus:ring-2 focus:ring-primary/10 text-foreground font-medium"
-                          >
-                            {wallets.length === 0 && <option value="" disabled>Crie uma carteira primeiro</option>}
-                            {wallets.map(acc => (
-                              <option key={acc.id} value={acc.id}>{acc.name}</option>
-                            ))}
-                          </select>
-                          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                        <motion.div
+                          layout
+                          className="w-4 h-4 bg-white rounded-full shadow-sm"
+                          animate={{ x: autoDebit ? 24 : 0 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                        />
+                      </button>
+                    </div>
+                    
+                    <AnimatePresence>
+                      {autoDebit && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="flex flex-col gap-2 overflow-hidden pt-2"
+                        >
+                          <label className="text-xs font-semibold text-muted-foreground ml-1 uppercase tracking-wide">Descontar de qual carteira?</label>
+                          <div className="relative">
+                            <select
+                              value={walletId}
+                              onChange={(e) => setWalletId(e.target.value)}
+                              className="w-full h-14 appearance-none rounded-[20px] bg-card px-4 py-2 text-sm border border-border focus:border-primary focus:ring-2 focus:ring-primary/10 text-foreground font-medium"
+                            >
+                              {wallets.length === 0 && <option value="" disabled>Crie uma carteira primeiro</option>}
+                              {wallets.map(acc => (
+                                <option key={acc.id} value={acc.id}>{acc.name}</option>
+                              ))}
+                            </select>
+                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
 
                 <Button type="submit" className="w-full mt-2 rounded-[20px] h-14" size="lg">
                   Salvar Fixo
