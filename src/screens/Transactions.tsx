@@ -8,6 +8,7 @@ export const Transactions: React.FC = () => {
   const { transactions, wallets, selectedDate, setSelectedDate } = useAppStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'income' | 'expense'>('expense');
+  const [visibleCount, setVisibleCount] = useState(20);
 
   const monthName = selectedDate.toLocaleDateString('pt-BR', { month: 'long' });
   const yearName = selectedDate.getFullYear();
@@ -16,6 +17,7 @@ export const Transactions: React.FC = () => {
     const newD = new Date(selectedDate);
     newD.setMonth(selectedDate.getMonth() + offset);
     setSelectedDate(newD);
+    setVisibleCount(20); // Reset pagination on month change
   };
 
   const groupedTransactions = useMemo(() => {
@@ -26,14 +28,20 @@ export const Transactions: React.FC = () => {
 
     const groups: Record<string, typeof transactions> = {};
     
-    monthFiltered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).forEach(tx => {
-      const dateKey = new Date(tx.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
-      if (!groups[dateKey]) groups[dateKey] = [];
-      groups[dateKey].push(tx);
-    });
+    monthFiltered
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, visibleCount)
+      .forEach(tx => {
+        const dateKey = new Date(tx.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+        if (!groups[dateKey]) groups[dateKey] = [];
+        groups[dateKey].push(tx);
+      });
 
-    return Object.entries(groups);
-  }, [transactions, selectedDate]);
+    return { 
+      groups: Object.entries(groups), 
+      totalInMonth: monthFiltered.length 
+    };
+  }, [transactions, selectedDate, visibleCount]);
 
   const openModal = (type: 'income' | 'expense') => {
     setModalType(type);
@@ -47,7 +55,6 @@ export const Transactions: React.FC = () => {
 
   return (
     <div className="px-5 md:px-10 pt-10 flex flex-col gap-8 max-w-4xl mx-auto w-full pb-28 font-light select-none">
-      {/* Header Section - Voltou para font-semibold e font-light como no resto do site */}
       <div className="flex justify-between items-center mb-2">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Extrato</h1>
         
@@ -65,7 +72,6 @@ export const Transactions: React.FC = () => {
         </div>
       </div>
 
-      {/* Action Buttons - Simplificados cores suaves */}
       <div className="grid grid-cols-2 gap-4">
         <button 
           onClick={() => openModal('income')}
@@ -80,7 +86,7 @@ export const Transactions: React.FC = () => {
         
         <button 
           onClick={() => openModal('expense')}
-          className="bg-destructive/10 hover:bg-destructive/20 active:scale-95 transition-all text-destructive rounded-[24px] p-5 flex items-center justify-between border border-destructive/20"
+          className="bg-destructive/10 hover:bg-destructive/20 active:scale-95 transition-all text-destructive rounded-[24px] p-5 flex items-center justify-between border border-destructive/10"
         >
           <div className="flex flex-col text-left">
              <span className="text-[10px] uppercase font-bold tracking-widest opacity-60">Novo Gasto</span>
@@ -90,16 +96,14 @@ export const Transactions: React.FC = () => {
         </button>
       </div>
 
-      {/* Feed Organizado - Mesmas informações, agrupadas por dia com fonte light/medium */}
       <div className="flex flex-col gap-6">
-        {groupedTransactions.length === 0 ? (
+        {groupedTransactions.groups.length === 0 ? (
           <div className="p-16 text-center text-xs font-medium text-muted-foreground bg-muted/20 border border-dashed border-border rounded-[32px]">
             Nenhuma transação encontrada para este mês.
           </div>
         ) : (
-          groupedTransactions.map(([date, txs], groupIdx) => (
+          groupedTransactions.groups.map(([date, txs]) => (
             <div key={date} className="flex flex-col gap-3">
-              {/* Day Header - Sutil */}
               <div className="flex items-center gap-3 px-1 mb-1">
                 <span className={"text-[10px] font-bold uppercase tracking-widest " + (isToday(date) ? "text-primary" : "text-muted-foreground/60")}>
                   {isToday(date) ? "Hoje" : date}
@@ -117,7 +121,7 @@ export const Transactions: React.FC = () => {
                         key={tx.id}
                         initial={{ opacity: 0, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: (groupIdx * 0.05) + (idx * 0.02) }}
+                        transition={{ delay: idx * 0.02 }}
                     >
                         <div className="flex items-center justify-between p-4 bg-card border border-border/50 rounded-[20px] premium-shadow">
                             <div className="flex items-center gap-4">
@@ -147,6 +151,15 @@ export const Transactions: React.FC = () => {
               </div>
             </div>
           ))
+        )}
+
+        {groupedTransactions.totalInMonth > visibleCount && (
+            <button 
+                onClick={() => setVisibleCount(prev => prev + 20)}
+                className="w-full py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-all bg-muted/10 hover:bg-muted/30 rounded-[20px] border border-dashed border-border"
+            >
+                Carregar mais transações ({groupedTransactions.totalInMonth - visibleCount} restantes)
+            </button>
         )}
       </div>
 
