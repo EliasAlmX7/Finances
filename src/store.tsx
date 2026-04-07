@@ -30,7 +30,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [state, setState] = useState<UserState>(() => {
     const saved = localStorage.getItem('finances-app-v5-state');
     if (saved) {
-      return { ...initialState, ...JSON.parse(saved) };
+      const parsed = JSON.parse(saved);
+      return { 
+        ...initialState, 
+        ...parsed,
+        transactions: parsed.transactions || [],
+        scheduled: parsed.scheduled || [],
+        wallets: parsed.wallets || initialState.wallets
+      };
     }
     return initialState;
   });
@@ -84,7 +91,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const addTransaction = (t: Omit<Transaction, 'id' | 'date'> & { date?: string }) => {
     const newTx: Transaction = {
       ...t,
-      id: crypto.randomUUID(),
+      id: Math.random().toString(36).substring(2, 9),
       date: t.date || new Date().toISOString(),
     };
     setState(prev => ({ ...prev, transactions: [newTx, ...prev.transactions] }));
@@ -95,7 +102,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const addWallet = (w: Omit<WalletType, 'id'>) => {
-    setState(prev => ({ ...prev, wallets: [...prev.wallets, { ...w, id: crypto.randomUUID() }] }));
+    setState(prev => ({ ...prev, wallets: [...prev.wallets, { ...w, id: Math.random().toString(36).substring(2, 9) }] }));
   };
 
   const deleteWallet = (id: string) => {
@@ -110,7 +117,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const addScheduled = (s: Omit<ScheduledTx, 'id'>) => {
-    setState(prev => ({ ...prev, scheduled: [...prev.scheduled, { ...s, id: crypto.randomUUID() }] }));
+    setState(prev => ({ ...prev, scheduled: [...prev.scheduled, { ...s, id: Math.random().toString(36).substring(2, 9) }] }));
   };
 
   const deleteScheduled = (id: string) => {
