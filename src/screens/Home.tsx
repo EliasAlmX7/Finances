@@ -95,7 +95,7 @@ export const Home: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col items-center gap-6"
       >
-        <h1 className="text-3xl font-bold tracking-tight text-foreground bg-gradient-to-r from-foreground to-foreground/40 bg-clip-text text-transparent border-none m-0">Minhas Finanças</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground bg-gradient-to-r from-foreground to-foreground/40 bg-clip-text text-transparent border-none m-0">Olá, Dami!</h1>
 
         <div className="flex bg-card rounded-[24px] premium-shadow p-1.5 items-center border border-border w-fit">
           <button onClick={() => changeMonth(-1)} className="p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors">

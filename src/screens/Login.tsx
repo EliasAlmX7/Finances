@@ -44,7 +44,7 @@ export const Login: React.FC = () => {
         </div>
 
         <div className="flex flex-col gap-4 w-full mt-4">
-          <Button 
+          <Button
             onClick={handleLogin}
             disabled={loading}
             size="lg"
@@ -59,9 +59,9 @@ export const Login: React.FC = () => {
               </React.Fragment>
             )}
           </Button>
-          
+
           {error && (
-            <motion.span 
+            <motion.span
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="text-xs text-destructive font-semibold"
@@ -72,14 +72,14 @@ export const Login: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-2 gap-4 w-full mt-8">
-            <div className="flex flex-col items-center gap-2 p-4 rounded-[20px] bg-muted/30 border border-border/50">
-                <ShieldCheck className="w-5 h-5 text-muted-foreground" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Segurança Biométrica</span>
-            </div>
-            <div className="flex flex-col items-center gap-2 p-4 rounded-[20px] bg-muted/30 border border-border/50">
-                <Zap className="w-5 h-5 text-muted-foreground" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Sincronismo Tempo Real</span>
-            </div>
+          <div className="flex flex-col items-center gap-2 p-4 rounded-[20px] bg-muted/30 border border-border/50">
+            <ShieldCheck className="w-5 h-5 text-muted-foreground" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Segurança Biométrica</span>
+          </div>
+          <div className="flex flex-col items-center gap-2 p-4 rounded-[20px] bg-muted/30 border border-border/50">
+            <Zap className="w-5 h-5 text-muted-foreground" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Sincronismo Tempo Real</span>
+          </div>
         </div>
       </motion.div>
 
