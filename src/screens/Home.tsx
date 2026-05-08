@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Wallet, ArrowDownRight, ArrowUpRight, Calendar, History, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Wallet, ArrowDownRight, ArrowUpRight, Calendar, History, Sparkles, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-react';
 import { useAppStore } from '../store';
 import { Card } from '../components/ui/card';
 import { AddTransactionModal } from '../components/AddTransactionModal';
 
 export const Home: React.FC = () => {
-  const { transactions, scheduled, wallets, selectedDate, setSelectedDate } = useAppStore();
+  const { transactions, scheduled, selectedDate, setSelectedDate, addTransaction } = useAppStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'income' | 'expense'>('expense');
 
@@ -176,6 +176,67 @@ export const Home: React.FC = () => {
           </div>
         </Card>
       </motion.div>
+
+      {/* Banner: Transferir Saldo para o Próximo Mês */}
+      {(() => {
+        // Só mostra quando o saldo do mês atual for positivo
+        if (balance <= 0) return null;
+
+        const nextMonth = new Date(selectedDate);
+        nextMonth.setMonth(nextMonth.getMonth() + 1);
+        const nextMonthLabel = nextMonth.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+
+        // Verifica se já existe uma transferência deste mês para o próximo
+        const alreadyTransferred = transactions.some(t => {
+          const d = new Date(t.date);
+          return (
+            t.description.startsWith('💸 Saldo anterior') &&
+            d.getMonth() === nextMonth.getMonth() &&
+            d.getFullYear() === nextMonth.getFullYear()
+          );
+        });
+
+        if (alreadyTransferred) return null;
+
+        const handleTransfer = () => {
+          if (!confirm(`Deseja transferir R$ ${balance.toFixed(2).replace('.', ',')} do saldo atual para ${nextMonthLabel}?`)) return;
+          // Cria uma receita no início do próximo mês
+          const nextMonthDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), 1);
+          addTransaction({
+            description: `💸 Saldo anterior de ${selectedDate.toLocaleDateString('pt-BR', { month: 'long' })}`,
+            amount: balance,
+            type: 'income',
+            category: 'Outros',
+            date: nextMonthDate.toISOString(),
+          });
+        };
+
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+          >
+            <div
+              onClick={handleTransfer}
+              className="flex items-center justify-between gap-4 p-5 bg-card border border-border rounded-[24px] premium-shadow cursor-pointer hover:bg-muted/30 transition-all active:scale-[0.98]"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-[#34c759]/10 flex items-center justify-center text-[#34c759] shrink-0">
+                  <ChevronsRight className="w-5 h-5" strokeWidth={2} />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold text-foreground">Transferir saldo para {nextMonthLabel}</span>
+                  <span className="text-xs text-muted-foreground">
+                    Levar <strong className="text-[#34c759]">R$ {balance.toFixed(2).replace('.', ',')}</strong> como receita no próximo mês
+                  </span>
+                </div>
+              </div>
+              <ArrowUpRight className="w-5 h-5 text-[#34c759] shrink-0" strokeWidth={2} />
+            </div>
+          </motion.div>
+        );
+      })()}
 
       {/* Mágico Insight */}
       <motion.div

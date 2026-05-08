@@ -53,7 +53,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isOpen
         amount,
         type: 'income',
         walletId,
-        category: 'Salário'
+        category: 'Renda Fixa'
       });
     }
     

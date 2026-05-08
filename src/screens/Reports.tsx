@@ -121,13 +121,13 @@ export const Reports: React.FC = () => {
                     dataKey="value"
                     stroke="none"
                   >
-                    {expensesByCategory.map(([name], index) => {
+                    {expensesByCategory.map(([_name], index) => {
                       const colors = ['#d11a2a', '#ff9f0a', '#34c759', '#007aff', '#af52de', '#ff2d55', '#5856d6'];
                       return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />;
                     })}
                   </Pie>
                   <Tooltip 
-                    formatter={(value: number) => `R$ ${value.toFixed(2).replace('.', ',')}`}
+                    formatter={(value) => [`R$ ${Number(value).toFixed(2).replace('.', ',')}`, 'Valor']}
                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px -10px rgba(0,0,0,0.2)' }}
                   />
                 </RechartsPieChart>
