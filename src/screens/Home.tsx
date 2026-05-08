@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Wallet, ArrowDownRight, ArrowUpRight, Calendar, History, Sparkles, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-react';
+import { Wallet, ArrowDownRight, ArrowUpRight, Calendar, History, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAppStore } from '../store';
 import { Card } from '../components/ui/card';
 import { AddTransactionModal } from '../components/AddTransactionModal';
@@ -21,23 +21,39 @@ export const Home: React.FC = () => {
 
 
   // Logic: Saldo do Mês = Receitas do Mês Selecionado - Despesas do Mês Selecionado
-  const { balance, income, expense, expensesList, fixosList, fixosTotal } = useMemo(() => {
+  const { balance, income, expense, expensesList, fixosList, fixosTotal, prevMonthBalance, hasCarriedOver } = useMemo(() => {
     let monthInc = 0;
     let monthExp = 0;
     let fixosSum = 0;
+
+    const prevDate = new Date(selectedDate);
+    prevDate.setMonth(prevDate.getMonth() - 1);
+    let prevInc = 0;
+    let prevExp = 0;
     
-    const currentMonthTxs = transactions.filter(t => {
+    let carriedOver = false;
+
+    transactions.forEach(t => {
       const d = new Date(t.date);
-      return d.getMonth() === selectedDate.getMonth() && d.getFullYear() === selectedDate.getFullYear();
+      // Current Month
+      if (d.getMonth() === selectedDate.getMonth() && d.getFullYear() === selectedDate.getFullYear()) {
+        if (t.type === 'income') monthInc += t.amount;
+        else monthExp += t.amount;
+
+        if (t.description.startsWith('💸 Saldo anterior')) {
+           carriedOver = true;
+        }
+      }
+      
+      // Previous Month
+      if (d.getMonth() === prevDate.getMonth() && d.getFullYear() === prevDate.getFullYear()) {
+        if (t.type === 'income') prevInc += t.amount;
+        else prevExp += t.amount;
+      }
     });
 
-    currentMonthTxs.forEach(t => {
-      if (t.type === 'income') monthInc += t.amount;
-      else monthExp += t.amount;
-    });
-
-    const expensesOnly = currentMonthTxs
-      .filter(t => t.type === 'expense')
+    const expensesOnly = transactions
+      .filter(t => t.type === 'expense' && new Date(t.date).getMonth() === selectedDate.getMonth() && new Date(t.date).getFullYear() === selectedDate.getFullYear())
       .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     // Fixos: Summing remaining ones for the selected month view
@@ -49,12 +65,14 @@ export const Home: React.FC = () => {
     });
 
     return { 
-      balance: monthInc - monthExp, // Agora o saldo é exclusivamente o fluxo do mês atual
+      balance: monthInc - monthExp,
       income: monthInc, 
       expense: monthExp,
       expensesList: expensesOnly,
       fixosList: activeScheduled.filter(s => s.type === 'expense').sort((a,b) => a.dayOfMonth - b.dayOfMonth),
-      fixosTotal: fixosSum
+      fixosTotal: fixosSum,
+      prevMonthBalance: prevInc - prevExp,
+      hasCarriedOver: carriedOver
     };
   }, [transactions, scheduled, selectedDate]);
 
@@ -101,25 +119,25 @@ export const Home: React.FC = () => {
   }
 
   return (
-    <div className="px-5 md:px-10 pt-10 flex flex-col gap-8 max-w-4xl mx-auto w-full pb-8 font-light">
+    <div className="px-5 md:px-10 pt-10 flex flex-col gap-6 max-w-4xl mx-auto w-full pb-8 font-light">
       
       {/* Header Eleganza */}
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col items-center gap-6"
+        className="flex justify-between items-center"
       >
-        <h1 className="text-3xl font-bold tracking-tight text-foreground bg-gradient-to-r from-foreground to-foreground/40 bg-clip-text text-transparent border-none m-0">Olá, Dami!</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground bg-gradient-to-r from-foreground to-foreground/40 bg-clip-text text-transparent border-none m-0">Olá, Dami!</h1>
 
-        <div className="flex bg-card rounded-[24px] premium-shadow p-1.5 items-center border border-border w-fit">
-          <button onClick={() => changeMonth(-1)} className="p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors">
+        <div className="flex bg-card rounded-[20px] shadow-sm p-1 items-center border border-border w-fit">
+          <button onClick={() => changeMonth(-1)} className="p-1.5 rounded-full hover:bg-muted text-muted-foreground transition-colors">
             <ChevronLeft className="w-5 h-5" strokeWidth={1.5} />
           </button>
-          <div className="flex flex-col items-center px-4 w-32">
-            <span className="text-[14px] font-medium text-foreground capitalize tracking-wide">{monthName}</span>
+          <div className="flex flex-col items-center px-3 w-28">
+            <span className="text-[13px] font-semibold text-foreground capitalize tracking-wide">{monthName}</span>
             <span className="text-[10px] text-muted-foreground">{yearName}</span>
           </div>
-          <button onClick={() => changeMonth(1)} className="p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors">
+          <button onClick={() => changeMonth(1)} className="p-1.5 rounded-full hover:bg-muted text-muted-foreground transition-colors">
             <ChevronRight className="w-5 h-5" strokeWidth={1.5} />
           </button>
         </div>
@@ -131,126 +149,85 @@ export const Home: React.FC = () => {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 25 }}
       >
-        <Card className="flex flex-col p-8 gradient-card rounded-[32px] overflow-hidden transition-colors duration-500">
+        <Card className="flex flex-col p-6 md:p-8 bg-card border-border rounded-[32px] overflow-hidden transition-colors duration-500 shadow-sm relative">
           
-          <div className="flex flex-col relative z-10 w-full mb-8">
+          <div className="flex flex-col relative z-10 w-full mb-6">
             <div className="flex items-center gap-2 mb-2 text-muted-foreground">
               <Wallet className="w-4 h-4 opacity-70" strokeWidth={1.5} />
-              <span className="text-xs font-bold tracking-widest uppercase opacity-80">
-                Saldo do Mês (Entradas - Saídas)
+              <span className="text-[11px] font-bold tracking-widest uppercase opacity-80">
+                Saldo do Mês
               </span>
             </div>
             
-            {/* dynamic text size to prevent overflow */}
-            <h1 className={"font-bold tracking-tight mb-4 break-words " + (isDebt ? 'text-[#d11a2a] ' : 'text-foreground ') + (balance.toString().length > 8 ? 'text-4xl md:text-5xl' : 'text-5xl md:text-6xl')}>
+            <h1 className={"font-bold tracking-tight mb-3 break-words " + (isDebt ? 'text-destructive ' : 'text-foreground ') + (balance.toString().length > 8 ? 'text-4xl' : 'text-5xl')}>
               R$ {balance.toFixed(2).replace('.', ',')}
             </h1>
 
-            <div className="flex flex-col gap-1.5 opacity-60">
-              <span className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] truncate">
-                Entradas do Mês: <span className="text-success font-black">R$ {income.toFixed(2).replace('.', ',')}</span>
+            {prevMonthBalance > 0 && !hasCarriedOver && (
+              <button 
+                onClick={() => {
+                   if (!confirm(`Puxar R$ ${prevMonthBalance.toFixed(2).replace('.', ',')} que sobraram do mês passado?`)) return;
+                   const firstDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+                   const prevMonthName = new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1).toLocaleDateString('pt-BR', { month: 'long' });
+                   addTransaction({
+                      description: `💸 Saldo anterior de ${prevMonthName}`,
+                      amount: prevMonthBalance,
+                      type: 'income',
+                      category: 'Outros',
+                      date: firstDay.toISOString(),
+                   });
+                }}
+                className="flex items-center gap-2 text-[11px] font-bold text-[#34c759] hover:text-[#2ead4e] transition-colors bg-[#34c759]/10 px-3 py-1.5 rounded-full w-fit mb-4 active:scale-95"
+              >
+                <ArrowDownRight className="w-3 h-3" strokeWidth={3} />
+                +R$ {prevMonthBalance.toFixed(2).replace('.', ',')} de {new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1).toLocaleDateString('pt-BR', { month: 'long' })}
+              </button>
+            )}
+
+            <div className="flex items-center gap-4 opacity-70 mt-1">
+              <span className="text-[11px] text-muted-foreground font-semibold">
+                Entrou: <span className="text-[#34c759]">R$ {income.toFixed(2).replace('.', ',')}</span>
               </span>
               {fixosTotal > 0 && (
-                <span className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] truncate">
-                  Falta pagar fixos: <span className="text-primary font-black">R$ {fixosTotal.toFixed(2).replace('.', ',')}</span>
+                <span className="text-[11px] text-muted-foreground font-semibold">
+                  Fixos: <span className="text-primary">R$ {fixosTotal.toFixed(2).replace('.', ',')}</span>
                 </span>
               )}
             </div>
           </div>
 
-          <div className="flex gap-4 relative z-10">
+          <div className="flex gap-3 relative z-10">
             <button 
               onClick={() => openAddModal('expense')}
-              className="flex-1 flex items-center justify-center gap-2 bg-[#d11a2a] hover:bg-[#b01321] text-white px-2 rounded-[20px] font-medium shadow-md shadow-[#d11a2a]/10 transition-all active:scale-95 h-14 text-sm whitespace-nowrap"
+              className="flex-1 flex items-center justify-center gap-2 bg-destructive/10 text-destructive hover:bg-destructive/20 px-2 rounded-[20px] font-semibold transition-all active:scale-95 h-12 text-sm"
             >
-              <ArrowDownRight className="w-4 h-4 shrink-0" strokeWidth={2} />
-              <span className="truncate">Nova Despesa</span>
+              <ArrowDownRight className="w-4 h-4" strokeWidth={2.5} />
+              Despesa
             </button>
             <button 
               onClick={() => openAddModal('income')}
-              className="flex-1 flex items-center justify-center gap-2 bg-[#34c759] hover:bg-[#2ead4e] text-white px-2 rounded-[20px] font-medium shadow-md shadow-[#34c759]/10 transition-all active:scale-95 h-14 text-sm whitespace-nowrap"
+              className="flex-1 flex items-center justify-center gap-2 bg-[#34c759]/10 text-[#34c759] hover:bg-[#34c759]/20 px-2 rounded-[20px] font-semibold transition-all active:scale-95 h-12 text-sm"
             >
-              <ArrowUpRight className="w-4 h-4 shrink-0" strokeWidth={2} />
-              <span className="truncate">Nova Receita</span>
+              <ArrowUpRight className="w-4 h-4" strokeWidth={2.5} />
+              Receita
             </button>
           </div>
         </Card>
       </motion.div>
 
-      {/* Banner: Transferir Saldo para o Próximo Mês */}
-      {(() => {
-        // Só mostra quando o saldo do mês atual for positivo
-        if (balance <= 0) return null;
-
-        const nextMonth = new Date(selectedDate);
-        nextMonth.setMonth(nextMonth.getMonth() + 1);
-        const nextMonthLabel = nextMonth.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-
-        // Verifica se já existe uma transferência deste mês para o próximo
-        const alreadyTransferred = transactions.some(t => {
-          const d = new Date(t.date);
-          return (
-            t.description.startsWith('💸 Saldo anterior') &&
-            d.getMonth() === nextMonth.getMonth() &&
-            d.getFullYear() === nextMonth.getFullYear()
-          );
-        });
-
-        if (alreadyTransferred) return null;
-
-        const handleTransfer = () => {
-          if (!confirm(`Deseja transferir R$ ${balance.toFixed(2).replace('.', ',')} do saldo atual para ${nextMonthLabel}?`)) return;
-          // Cria uma receita no início do próximo mês
-          const nextMonthDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), 1);
-          addTransaction({
-            description: `💸 Saldo anterior de ${selectedDate.toLocaleDateString('pt-BR', { month: 'long' })}`,
-            amount: balance,
-            type: 'income',
-            category: 'Outros',
-            date: nextMonthDate.toISOString(),
-          });
-        };
-
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-          >
-            <div
-              onClick={handleTransfer}
-              className="flex items-center justify-between gap-4 p-5 bg-card border border-border rounded-[24px] premium-shadow cursor-pointer hover:bg-muted/30 transition-all active:scale-[0.98]"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-[#34c759]/10 flex items-center justify-center text-[#34c759] shrink-0">
-                  <ChevronsRight className="w-5 h-5" strokeWidth={2} />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-foreground">Transferir saldo para {nextMonthLabel}</span>
-                  <span className="text-xs text-muted-foreground">
-                    Levar <strong className="text-[#34c759]">R$ {balance.toFixed(2).replace('.', ',')}</strong> como receita no próximo mês
-                  </span>
-                </div>
-              </div>
-              <ArrowUpRight className="w-5 h-5 text-[#34c759] shrink-0" strokeWidth={2} />
-            </div>
-          </motion.div>
-        );
-      })()}
-
       {/* Mágico Insight */}
       <motion.div
-        initial={{ opacity: 0, y: 15 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <div className="flex items-start gap-4 p-5 bg-card border border-border rounded-[24px] premium-shadow">
-          <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-400 shrink-0">
-            <Sparkles className="w-5 h-5" strokeWidth={1.5} />
+        <div className="flex items-start gap-4 p-4 bg-muted/30 border border-border/50 rounded-[24px]">
+          <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500 shrink-0 mt-0.5">
+            <Sparkles className="w-4 h-4" strokeWidth={2} />
           </div>
           <div className="flex flex-col justify-center">
-            <h3 className="font-medium text-foreground text-xs uppercase tracking-wider mb-0.5 opacity-60">Insight Mágico</h3>
-            <p className="text-sm font-light leading-relaxed text-muted-foreground">
+            <h3 className="font-bold text-foreground text-[10px] uppercase tracking-widest mb-1 opacity-70">Insight Mágico</h3>
+            <p className="text-sm font-medium leading-relaxed text-muted-foreground">
               {insightMessage}
             </p>
           </div>
@@ -276,14 +253,14 @@ export const Home: React.FC = () => {
           ) : (
             <div className="flex flex-col gap-3">
                {fixosList.map((tx) => (
-                 <div key={tx.id} className="flex items-center justify-between p-4 bg-card rounded-[20px] border border-border premium-shadow gap-4">
+                 <div key={tx.id} className="flex items-center justify-between p-4 bg-card rounded-[20px] border border-border/60 gap-4 hover:bg-muted/20 transition-colors">
                    <div className="flex items-center gap-3 flex-1 min-w-0">
                      <div className="flex flex-col flex-1 min-w-0">
-                       <span className="font-medium text-foreground text-sm truncate">{tx.description}</span>
-                       <span className="text-[10px] text-muted-foreground">Dia {tx.dayOfMonth}</span>
+                       <span className="font-semibold text-foreground text-sm truncate">{tx.description}</span>
+                       <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mt-0.5">Dia {tx.dayOfMonth}</span>
                      </div>
                    </div>
-                   <span className="font-medium text-foreground text-sm tracking-tight shrink-0">
+                   <span className="font-bold text-foreground text-sm tracking-tight shrink-0">
                      - R$ {tx.amount.toFixed(2).replace('.', ',')}
                    </span>
                  </div>
@@ -308,18 +285,18 @@ export const Home: React.FC = () => {
               Nenhum gasto extra neste mês.
             </div>
           ) : (
-             <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3">
                {expensesList.map((tx) => {
                  const dateObj = new Date(tx.date);
                  return (
-                   <div key={tx.id} className="flex items-center justify-between p-4 bg-card rounded-[20px] border border-border premium-shadow gap-4">
+                   <div key={tx.id} className="flex items-center justify-between p-4 bg-card rounded-[20px] border border-border/60 gap-4 hover:bg-muted/20 transition-colors">
                      <div className="flex flex-col flex-1 min-w-0">
-                       <span className="font-medium text-foreground text-sm truncate">{tx.description}</span>
-                       <span className="text-[10px] text-muted-foreground">
+                       <span className="font-semibold text-foreground text-sm truncate">{tx.description}</span>
+                       <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mt-0.5">
                          {dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
                        </span>
                      </div>
-                     <span className="font-medium text-foreground text-sm tracking-tight shrink-0">
+                     <span className="font-bold text-foreground text-sm tracking-tight shrink-0">
                        - R$ {tx.amount.toFixed(2).replace('.', ',')}
                      </span>
                    </div>
