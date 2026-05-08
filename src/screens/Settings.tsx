@@ -5,7 +5,7 @@ import { useAppStore } from '../store';
 import { Card } from '../components/ui/card';
 
 export const Settings: React.FC = () => {
-  const { resetData, theme, setTheme, notificationsEnabled, setNotificationsEnabled } = useAppStore();
+  const { resetData, theme, setTheme, notificationsEnabled, setNotificationsEnabled, restoreFromBackup } = useAppStore();
 
   const handleReset = () => {
     if (confirm('ATENÇÃO: Você tem certeza que deseja APAGAR TODOS os dados? Esta ação não pode ser desfeita.')) {
@@ -133,6 +133,29 @@ export const Settings: React.FC = () => {
               >
                 <Trash2 className="w-4 h-4" />
                 Zerar Sistema Agora
+              </button>
+            </div>
+
+            <div className="p-4 mt-2 rounded-[20px] bg-primary/5 border border-primary/10 flex flex-col gap-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold text-primary">Restaurar da Nuvem</span>
+                  <span className="text-xs text-muted-foreground leading-relaxed">
+                    Recupere seus dados do último backup seguro. Isso substituirá os dados atuais do seu aparelho.
+                  </span>
+                </div>
+              </div>
+              <button 
+                onClick={() => {
+                  if(confirm('Isso vai puxar seus dados do backup da nuvem e substituir os dados atuais na tela. Continuar?')) {
+                    restoreFromBackup();
+                  }
+                }}
+                className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-2 rounded-[20px] font-medium transition-all active:scale-95 h-12 text-sm w-full shadow-sm"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                Puxar Backup Seguro
               </button>
             </div>
           </div>

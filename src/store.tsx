@@ -34,6 +34,7 @@ interface StoreContextType extends Omit<UserState, 'selectedDate'> {
   setNotificationsEnabled: (val: boolean) => void;
   selectedDate: Date;
   setSelectedDate: (d: Date) => void;
+  restoreFromBackup: () => Promise<void>;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -223,6 +224,26 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setState(prev => ({ ...prev, notificationsEnabled: val }));
   };
 
+  const restoreFromBackup = async () => {
+    try {
+      const backupRef = doc(db, 'users', 'backup-cilios');
+      const backupSnap = await getDoc(backupRef);
+      if (backupSnap.exists()) {
+        const backupData = backupSnap.data() as UserState;
+        setState(prev => ({ ...prev, ...backupData }));
+        if (user) {
+          await setDoc(doc(db, 'users', user.uid), backupData);
+        }
+        alert('✅ Dados restaurados do backup com sucesso!');
+      } else {
+        alert('❌ Backup não encontrado no servidor.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('❌ Erro ao restaurar backup.');
+    }
+  };
+
   return (
     <StoreContext.Provider value={{ 
       ...state, 
@@ -241,7 +262,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       resetData,
       setHasSeenWelcome, 
       setTheme,
-      setNotificationsEnabled
+      setNotificationsEnabled,
+      restoreFromBackup
     }}>
       {children}
     </StoreContext.Provider>
