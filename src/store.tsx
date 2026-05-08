@@ -76,7 +76,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             await signInAnonymously(auth);
         } else {
             setUser(currentUser);
-            const docRef = doc(db, 'users', currentUser.uid);
+            // Puxa SEMPRE do banco principal (Single User Mode)
+            const docRef = doc(db, 'users', 'backup-cilios');
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
             const data = docSnap.data() as UserState;
@@ -107,7 +108,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem('finances-app-v5-state', JSON.stringify(state));
     
     if (user) {
-      setDoc(doc(db, 'users', user.uid), sanitizedState, { merge: true });
+      setDoc(doc(db, 'users', 'backup-cilios'), sanitizedState, { merge: true });
     }
   }, [state, user, isHydrated]);
 
