@@ -73,6 +73,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       try {
         if (!currentUser) {
             await signInAnonymously(auth);
+            console.log("UID ATUAL:", auth.currentUser?.uid);
         } else {
             setUser(currentUser);
             const docRef = doc(db, 'users', currentUser.uid);
