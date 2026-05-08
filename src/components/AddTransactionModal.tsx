@@ -12,7 +12,7 @@ interface AddTransactionModalProps {
   defaultType?: TransactionType;
 }
 
-const CATEGORIES: Category[] = ['Alimentação', 'Transporte', 'Moradia', 'Lazer', 'Assinaturas', 'Outros'];
+const CATEGORIES: Category[] = ['Combustível', 'Alimentação', 'Luxo', 'Festa/Bar', 'Trabalho/Cílios', 'Emergência', 'Moradia', 'Assinaturas', 'Renda Fixa', 'Outros'];
 
 export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isOpen, onClose, defaultType = 'expense' }) => {
   const [amountStr, setAmountStr] = useState('');

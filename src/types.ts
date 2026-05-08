@@ -1,4 +1,4 @@
-export type Category = 'Alimentação' | 'Transporte' | 'Moradia' | 'Lazer' | 'Assinaturas' | 'Salário' | 'Outros';
+export type Category = 'Combustível' | 'Alimentação' | 'Luxo' | 'Festa/Bar' | 'Trabalho/Cílios' | 'Emergência' | 'Moradia' | 'Assinaturas' | 'Renda Fixa' | 'Outros';
 export type TransactionType = 'income' | 'expense';
 export type Theme = 'light' | 'dark';
 

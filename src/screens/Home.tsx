@@ -20,21 +20,8 @@ export const Home: React.FC = () => {
   };
 
 
-  // Logic: SALDO REAL = (Saldo Inicial Carteiras + Todas Receitas - Todas Despesas) - Fixos Restantes
+  // Logic: Saldo do Mês = Receitas do Mês Selecionado - Despesas do Mês Selecionado
   const { balance, income, expense, expensesList, fixosList, fixosTotal } = useMemo(() => {
-    let globalInc = 0;
-    let globalExp = 0;
-    let walletSeed = wallets.reduce((acc, w) => acc + w.initialBalance, 0);
-
-    // Historical totals for actual wallet balance
-    transactions.forEach(t => {
-      if (t.type === 'income') globalInc += t.amount;
-      else globalExp += t.amount;
-    });
-
-    const currentWalletBalance = walletSeed + globalInc - globalExp;
-
-    // Monthly view stats (used for the mini stats under the balance)
     let monthInc = 0;
     let monthExp = 0;
     let fixosSum = 0;
@@ -62,14 +49,14 @@ export const Home: React.FC = () => {
     });
 
     return { 
-      balance: currentWalletBalance, // Mostra o dinheiro que realmente está nas carteiras
+      balance: monthInc - monthExp, // Agora o saldo é exclusivamente o fluxo do mês atual
       income: monthInc, 
       expense: monthExp,
       expensesList: expensesOnly,
       fixosList: activeScheduled.filter(s => s.type === 'expense').sort((a,b) => a.dayOfMonth - b.dayOfMonth),
       fixosTotal: fixosSum
     };
-  }, [transactions, scheduled, wallets, selectedDate]);
+  }, [transactions, scheduled, selectedDate]);
 
   const openAddModal = (type: 'income' | 'expense') => {
     setModalType(type);
@@ -78,12 +65,39 @@ export const Home: React.FC = () => {
 
   const isDebt = balance < 0;
 
-  // Mágico Insight
-  let insightMessage = "Seu planejamento está saudável este mês. Bom trabalho!";
-  if (isDebt) {
-    insightMessage = "Atenção: Os seus gastos e fixos ultrapassaram as entradas previstas deste mês.";
-  } else if ((expense + fixosTotal) / (income || 1) > 0.8) {
-    insightMessage = "Cuidado. Você já comprometeu mais de 80% do seu orçamento mensal.";
+  // Novo Mágico Insight mais inteligente
+  let insightMessage = "Tudo tranquilo por aqui. Continue registrando seus gastos para uma análise mais precisa!";
+  
+  const today = new Date();
+  const isCurrentMonth = selectedDate.getMonth() === today.getMonth() && selectedDate.getFullYear() === today.getFullYear();
+  const currentDay = today.getDate();
+  const monthProgress = currentDay / 30; // approx
+
+  if (isCurrentMonth) {
+    if (expense > income && income > 0) {
+      insightMessage = `Alerta vermelho 🚨 Suas despesas (R$ ${expense.toFixed(0)}) já ultrapassaram suas receitas do mês! Segure os gastos extras.`;
+    } else if (expense + fixosTotal > income && income > 0) {
+      insightMessage = "Atenção: Seus gastos extras somados aos seus custos fixos vão estourar o seu orçamento deste mês.";
+    } else if (income > 0) {
+      const spentRatio = expense / income;
+      if (spentRatio > monthProgress + 0.2) {
+        insightMessage = `Você já gastou ${(spentRatio * 100).toFixed(0)}% da sua renda, mas o mês ainda está no dia ${currentDay}. Cuidado com o ritmo!`;
+      } else if (spentRatio < monthProgress - 0.1 && currentDay > 15) {
+        insightMessage = `Que orgulho! 🌟 Passamos da metade do mês e você gastou apenas ${(spentRatio * 100).toFixed(0)}% do que ganhou.`;
+      } else {
+        insightMessage = "Seus gastos estão fluindo bem e dentro do planejado para esta época do mês.";
+      }
+    } else if (income === 0 && expense > 0) {
+      insightMessage = "Você começou o mês gastando, mas ainda não registrou nenhuma receita. Lembre-se de adicionar suas entradas!";
+    }
+  } else {
+    if (isDebt) {
+      insightMessage = "Neste mês você fechou no vermelho. Use esse histórico para não repetir os mesmos erros.";
+    } else if (balance > 0) {
+      insightMessage = "Você fechou este mês no positivo! Um ótimo histórico de economia.";
+    } else {
+      insightMessage = "Mês sem muita movimentação ou o saldo terminou zerado.";
+    }
   }
 
   return (
@@ -123,21 +137,22 @@ export const Home: React.FC = () => {
             <div className="flex items-center gap-2 mb-2 text-muted-foreground">
               <Wallet className="w-4 h-4 opacity-70" strokeWidth={1.5} />
               <span className="text-xs font-bold tracking-widest uppercase opacity-80">
-                Saldo Atual (Carteiras)
+                Saldo do Mês (Entradas - Saídas)
               </span>
             </div>
             
-            <h1 className={"text-5xl md:text-6xl font-bold tracking-tight mb-4 " + (isDebt ? 'text-[#d11a2a]' : 'text-foreground')}>
+            {/* dynamic text size to prevent overflow */}
+            <h1 className={"font-bold tracking-tight mb-4 break-words " + (isDebt ? 'text-[#d11a2a] ' : 'text-foreground ') + (balance.toString().length > 8 ? 'text-4xl md:text-5xl' : 'text-5xl md:text-6xl')}>
               R$ {balance.toFixed(2).replace('.', ',')}
             </h1>
 
             <div className="flex flex-col gap-1.5 opacity-60">
-              <span className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em]">
-                Contas do Mês: <span className="text-success font-black">R$ {income.toFixed(2).replace('.', ',')}</span>
+              <span className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] truncate">
+                Entradas do Mês: <span className="text-success font-black">R$ {income.toFixed(2).replace('.', ',')}</span>
               </span>
               {fixosTotal > 0 && (
-                <span className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em]">
-                  Falta pagar: <span className="text-primary font-black">R$ {fixosTotal.toFixed(2).replace('.', ',')}</span>
+                <span className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] truncate">
+                  Falta pagar fixos: <span className="text-primary font-black">R$ {fixosTotal.toFixed(2).replace('.', ',')}</span>
                 </span>
               )}
             </div>
@@ -146,17 +161,17 @@ export const Home: React.FC = () => {
           <div className="flex gap-4 relative z-10">
             <button 
               onClick={() => openAddModal('expense')}
-              className="flex-1 flex items-center justify-center gap-2 bg-[#d11a2a] hover:bg-[#b01321] text-white px-2 rounded-[20px] font-medium shadow-md shadow-[#d11a2a]/10 transition-all active:scale-95 h-14 text-sm"
+              className="flex-1 flex items-center justify-center gap-2 bg-[#d11a2a] hover:bg-[#b01321] text-white px-2 rounded-[20px] font-medium shadow-md shadow-[#d11a2a]/10 transition-all active:scale-95 h-14 text-sm whitespace-nowrap"
             >
-              <ArrowDownRight className="w-4 h-4" strokeWidth={2} />
-              Nova Despesa
+              <ArrowDownRight className="w-4 h-4 shrink-0" strokeWidth={2} />
+              <span className="truncate">Nova Despesa</span>
             </button>
             <button 
               onClick={() => openAddModal('income')}
-              className="flex-1 flex items-center justify-center gap-2 bg-[#34c759] hover:bg-[#2ead4e] text-white px-2 rounded-[20px] font-medium shadow-md shadow-[#34c759]/10 transition-all active:scale-95 h-14 text-sm"
+              className="flex-1 flex items-center justify-center gap-2 bg-[#34c759] hover:bg-[#2ead4e] text-white px-2 rounded-[20px] font-medium shadow-md shadow-[#34c759]/10 transition-all active:scale-95 h-14 text-sm whitespace-nowrap"
             >
-              <ArrowUpRight className="w-4 h-4" strokeWidth={2} />
-              Nova Receita
+              <ArrowUpRight className="w-4 h-4 shrink-0" strokeWidth={2} />
+              <span className="truncate">Nova Receita</span>
             </button>
           </div>
         </Card>
@@ -200,14 +215,14 @@ export const Home: React.FC = () => {
           ) : (
             <div className="flex flex-col gap-3">
                {fixosList.map((tx) => (
-                 <div key={tx.id} className="flex items-center justify-between p-4 bg-card rounded-[20px] border border-border premium-shadow">
-                   <div className="flex items-center gap-3">
-                     <div className="flex flex-col">
-                       <span className="font-medium text-foreground text-sm">{tx.description}</span>
+                 <div key={tx.id} className="flex items-center justify-between p-4 bg-card rounded-[20px] border border-border premium-shadow gap-4">
+                   <div className="flex items-center gap-3 flex-1 min-w-0">
+                     <div className="flex flex-col flex-1 min-w-0">
+                       <span className="font-medium text-foreground text-sm truncate">{tx.description}</span>
                        <span className="text-[10px] text-muted-foreground">Dia {tx.dayOfMonth}</span>
                      </div>
                    </div>
-                   <span className="font-medium text-foreground text-sm tracking-tight">
+                   <span className="font-medium text-foreground text-sm tracking-tight shrink-0">
                      - R$ {tx.amount.toFixed(2).replace('.', ',')}
                    </span>
                  </div>
@@ -232,18 +247,18 @@ export const Home: React.FC = () => {
               Nenhum gasto extra neste mês.
             </div>
           ) : (
-            <div className="flex flex-col gap-3">
+             <div className="flex flex-col gap-3">
                {expensesList.map((tx) => {
                  const dateObj = new Date(tx.date);
                  return (
-                   <div key={tx.id} className="flex items-center justify-between p-4 bg-card rounded-[20px] border border-border premium-shadow">
-                     <div className="flex flex-col">
-                       <span className="font-medium text-foreground text-sm">{tx.description}</span>
+                   <div key={tx.id} className="flex items-center justify-between p-4 bg-card rounded-[20px] border border-border premium-shadow gap-4">
+                     <div className="flex flex-col flex-1 min-w-0">
+                       <span className="font-medium text-foreground text-sm truncate">{tx.description}</span>
                        <span className="text-[10px] text-muted-foreground">
                          {dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
                        </span>
                      </div>
-                     <span className="font-medium text-foreground text-sm tracking-tight">
+                     <span className="font-medium text-foreground text-sm tracking-tight shrink-0">
                        - R$ {tx.amount.toFixed(2).replace('.', ',')}
                      </span>
                    </div>

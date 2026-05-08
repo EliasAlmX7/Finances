@@ -7,7 +7,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import type { Category } from '../types';
 
-const CATEGORIES: Category[] = ['Alimentação', 'Transporte', 'Moradia', 'Lazer', 'Assinaturas', 'Salário', 'Outros'];
+const CATEGORIES: Category[] = ['Combustível', 'Alimentação', 'Luxo', 'Festa/Bar', 'Trabalho/Cílios', 'Emergência', 'Moradia', 'Assinaturas', 'Renda Fixa', 'Outros'];
 
 export const Scheduled: React.FC = () => {
   const { scheduled, wallets, addScheduled, editScheduled, deleteScheduled } = useAppStore();

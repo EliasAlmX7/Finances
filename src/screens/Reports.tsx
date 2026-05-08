@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PieChart, TrendingDown, TrendingUp, ChevronLeft, ChevronRight, X, ArrowRight } from 'lucide-react';
 import { useAppStore } from '../store';
 import { Card } from '../components/ui/card';
+import { PieChart as RechartsPieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 export const Reports: React.FC = () => {
   const { transactions, selectedDate, setSelectedDate } = useAppStore();
@@ -106,41 +107,76 @@ export const Reports: React.FC = () => {
             Nenhum gasto registrado neste mês para análise.
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
-             {expensesByCategory.map(([cat, val], idx) => {
-               const percentage = ((val / (totalExpense || 1)) * 100).toFixed(0);
-               return (
-                 <motion.div
-                   key={cat}
-                   initial={{ opacity: 0, y: 10 }}
-                   animate={{ opacity: 1, y: 0 }}
-                   transition={{ delay: idx * 0.05 }}
-                   onClick={() => setSelectedCategory(cat)}
-                 >
-                   <Card className="p-5 flex items-center justify-between bg-card border border-border rounded-[24px] premium-shadow cursor-pointer hover:bg-muted/30 transition-all active:scale-[0.98]">
-                     <div className="flex flex-col gap-1 w-full mr-4">
-                       <div className="flex justify-between items-center mb-1">
-                         <span className="text-sm font-semibold text-foreground tracking-wide">{cat}</span>
-                         <span className="text-xs font-bold text-muted-foreground">{percentage}%</span>
-                       </div>
-                       <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                         <motion.div
-                           initial={{ width: 0 }}
-                           animate={{ width: percentage + '%' }}
-                           className="h-full bg-foreground rounded-full"
-                         />
-                       </div>
-                     </div>
-                     <div className="flex items-center gap-3">
-                       <span className="text-sm font-bold text-foreground whitespace-nowrap">
-                         R$ {val.toFixed(2).replace('.', ',')}
-                       </span>
-                       <ArrowRight className="w-4 h-4 text-muted-foreground opacity-30" />
-                     </div>
-                   </Card>
-                 </motion.div>
-               );
-             })}
+          <div className="flex flex-col gap-6">
+            <Card className="p-6 bg-card border-border rounded-[32px] premium-shadow flex justify-center items-center h-[280px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsPieChart>
+                  <Pie
+                    data={expensesByCategory.map(([name, value]) => ({ name, value }))}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={70}
+                    outerRadius={100}
+                    paddingAngle={5}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {expensesByCategory.map(([name], index) => {
+                      const colors = ['#d11a2a', '#ff9f0a', '#34c759', '#007aff', '#af52de', '#ff2d55', '#5856d6'];
+                      return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />;
+                    })}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value: number) => `R$ ${value.toFixed(2).replace('.', ',')}`}
+                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px -10px rgba(0,0,0,0.2)' }}
+                  />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+            </Card>
+
+            <div className="flex flex-col gap-3">
+              {expensesByCategory.map(([cat, val], idx) => {
+                const percentage = ((val / (totalExpense || 1)) * 100).toFixed(0);
+                const colors = ['#d11a2a', '#ff9f0a', '#34c759', '#007aff', '#af52de', '#ff2d55', '#5856d6'];
+                const catColor = colors[idx % colors.length];
+                
+                return (
+                  <motion.div
+                    key={cat}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    onClick={() => setSelectedCategory(cat)}
+                  >
+                    <Card className="p-5 flex items-center justify-between bg-card border border-border rounded-[24px] premium-shadow cursor-pointer hover:bg-muted/30 transition-all active:scale-[0.98]">
+                      <div className="flex flex-col gap-1 w-full mr-4">
+                        <div className="flex justify-between items-center mb-1">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: catColor }} />
+                            <span className="text-sm font-semibold text-foreground tracking-wide truncate max-w-[120px] sm:max-w-none">{cat}</span>
+                          </div>
+                          <span className="text-xs font-bold text-muted-foreground">{percentage}%</span>
+                        </div>
+                        <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: percentage + '%' }}
+                            className="h-full rounded-full"
+                            style={{ backgroundColor: catColor }}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="text-sm font-bold text-foreground whitespace-nowrap">
+                          R$ {val.toFixed(2).replace('.', ',')}
+                        </span>
+                        <ArrowRight className="w-4 h-4 text-muted-foreground opacity-30" />
+                      </div>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
